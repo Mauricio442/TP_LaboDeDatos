@@ -2,23 +2,23 @@ import csv
 
 #%%
 
-''' def leer_parque(nombre_archivo, parque):
+def leer_parque(nombre_archivo, parque):
     f = open(nombre_archivo)
     filas = csv.reader(f)
-    data = []
+    data_arboles = []
     encabezado = next(filas)
     for fila in filas: 
         registro = dict(zip(encabezado, fila))
         if registro['espacio_ve'] == parque:
             data.append(registro)
-    return data 
+    return data_arboles 
             
-print(len(leer_parque('arbolado-en-espacios-verdes.csv', 'GENERAL PAZ'))) '''
+print(len(leer_parque('arbolado-en-espacios-verdes.csv', 'GENERAL PAZ'))) 
 
 def leer_parque(nombre_archivo, parque):
     f = open(nombre_archivo)
     filas = csv.reader(f)
-    data = []
+    data_arboles = []
     encabezado = next(filas)
     for fila in filas: 
         registro = dict(zip(encabezado, fila))
@@ -26,21 +26,21 @@ def leer_parque(nombre_archivo, parque):
             registro['altura_tot'] = float(registro['altura_tot'])
             data.append(registro)
             
-    return data  
+    return data_arboles  
 
 
 def especies(lista_arboles):
     lista_especies = []
     for arbol in range(len(lista_arboles)):
         lista_especies.append(lista_arboles[arbol]['nombre_com'])
-    conjunto_especies = set(lista_especies)
+    conjunto_especies = set(lista_especies) #usamos la funcion set para que deuvelva el conjunto sin repetidos
     return conjunto_especies
 
 def contar_ejemplares(lista_arboles):
-    espe_cies = especies(lista_arboles)
+    conjunto_especies = especies(lista_arboles)
     dicc = dict()
-    for elem in espe_cies:
-        dicc[elem] = 0
+    for especie in conjunto_especies:
+        dicc[especie] = 0
     
     
     for arbol in lista_arboles:
@@ -73,10 +73,10 @@ def obtener_inclinaciones(lista_arboles, especie):
 
 
 def especimen_mas_inclinado(lista_arboles):
-    espe_cies = especies(lista_arboles)
+    conjunto_especies = especies(lista_arboles)
     max_inclinacion = 0 
     especie_mas_inclinada = ""
-    for especie in espe_cies:
+    for especie in conjunto_especies:
         inclinaciones = obtener_inclinaciones(lista_arboles, especie)
         if (max(inclinaciones)) > (max_inclinacion):
             max_inclinacion = max(inclinaciones)
@@ -85,11 +85,10 @@ def especimen_mas_inclinado(lista_arboles):
 
 def especie_promedio_mas_inclinada(lista_arboles):
     
-    espe_cies = especies(lista_arboles)
+    conjunto_especies = especies(lista_arboles)
     especie_mas_inclinada = ""
     mayor_promedio = 0
-    for specie in espe_cies:
-        
+    for especie in conjunto_especies:
         promedio = (sum(obtener_inclinaciones(lista_arboles, specie))) / len((obtener_inclinaciones(lista_arboles, specie)))
         if promedio > mayor_promedio :
             mayor_promedio = promedio
