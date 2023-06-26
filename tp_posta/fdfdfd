@@ -1,0 +1,77 @@
+
+#Renombramos las columnas de 'codigo_departamento_indec', 'id_provincia_indec', 'clae2' y 'w_median' para que 
+#tengan nombres declarativos
+#Eliminamos la columna 'id_provincia_indec' pues ya tenemos la relacion prov_departamento
+#Eliminamos los registros que tengan NULLS en el departamento y salario mediano<0
+#ACLARAR QUE ASUMIMOS O INTERPRETAMOS QUE GANADERIA(ACTIVIDAD CON MAS OPERADORES) ESTA INCLUIDA EN RUBRO_id=1
+                
+provincias = sql^ """
+                SELECT DISTINCT id_provincia_indec as prov_id, nombre_provincia_indec as provincia
+                FROM cod_departamento
+                ORDER BY prov_id
+"""
+
+                
+depto = sql^ """
+                SELECT DISTINCT codigo_departamento_indec as depto_id, nombre_departamento_indec as departamento, id_provincia_indec as prov_id
+                FROM cod_departamento
+                ORDER BY depto_id
+"""
+           
+                
+
+salarios = sql ^  """
+                 SELECT DISTINCT fecha,codigo_departamento_indec AS departamento_id, clae2 AS rubro_id,
+                 w_median AS salario_mediano
+                 FROM median
+                 WHERE salario_mediano>0 AND departamento_id IS NOT NULL
+                 ORDER BY fecha, departamento_id, rubro_id, salario_mediano
+                """
+
+
+for j in range(9):
+    año=str(2014+j)
+    for i in range(1,13):
+        mes=str(i)
+        if i<10:
+            salarios['fecha']=salarios['fecha'].replace([año+'-0'+mes+'-01'],año)
+        else:
+            salarios['fecha']=salarios['fecha'].replace([año+'-'+mes+'-01'],año)
+salarios['fecha']=salarios['fecha'].replace(['2023-01-01'],'2023')
+
+
+#Creamos una tabla que es igual a la de salarios original, salvo que en vez
+#del id de la provincia tiene el nombre. Esto nos va a servir para luego hacer
+#comparaciones y filtrar por provincia de una manera más fácil de entender
+salarios = sql ^ """
+                 SELECT DISTINCT fecha,s.departamento_id, provincia,p.prov_id,rubro_id,salario_mediano
+                 FROM salarios AS s, depto AS d, provincias AS p
+                 WHERE d.depto_id=s.departamento_id AND p.prov_id=d.prov_id
+                 ORDER BY fecha,s.departamento_id,provincia,rubro_id,salario_mediano
+                """
+for j in range(9):
+    año=str(2014+j)
+    for i in range(1,13):
+        mes=str(i)
+        if i<10:
+            salarios['fecha']=salarios['fecha'].replace([año+'-0'+mes+'-01'],año)
+        else:
+            salarios['fecha']=salarios['fecha'].replace([año+'-'+mes+'-01'],año)
+salarios['fecha']=salarios['fecha'].replace(['2023-01-01'],'2023')
+                
+promedio_anual = sql^"""
+                    SELECT fecha AS año, AVG(salario_mediano) AS promedio_anual
+                    FROM salarios
+                    GROUP BY fecha
+                    ORDER BY fecha
+"""
+print(promedio_anual)               
+
+
+promedio_por_provincia = sql^"""
+                    SELECT fecha AS año, provincia, AVG(salario_mediano) AS promedio
+                    FROM salarios
+                    GROUP BY fecha,provincia
+                    ORDER BY fecha,provincia
+"""
+print(promedio_por_provincia) 
